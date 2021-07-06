@@ -1,3 +1,6 @@
+#This code is to plot comparison of exposure & seroprevalence 
+#for constant IFR model using differerent values of delta_epsilon.
+
 set.seed(100)
 
 library(rgeos)
@@ -16,11 +19,11 @@ library(gridExtra)
 
 ## common values
 ymax_kft <- 0.012
-ymax_exposure <- 0.3
+ymax_exposure <- 25
 colors_Dark<-brewer.pal(7,"Dark2")
 colors_Spectral<-brewer.pal(7,"Spectral")
-font_size = 16
-font_size_title = 16
+font_size = 18
+font_size_title = 22
 lwd = 0.5
 pt_size = 0.4
 right_margin=1
@@ -30,7 +33,7 @@ folder_strings = unlist(strsplit(getwd(), '/'))
 folder_strings[length(folder_strings)] = "Data"
 folder = paste(folder_strings, sep = "", collapse = "/")
 
-SeroModelConstantIFR <- readRDS(paste(folder,"/SeroModelConstantIFR.rds", sep = ""))
+SeroModelConstantIFR <- readRDS(paste(folder,"/SeroModelConstantIFR.rds", sep = ""))#Load posterior estimations for constant IFR model
 
 beta <- rstan::extract(SeroModelConstantIFR)$beta
 gamma_NorthEastYorkshireHumber<- rstan::extract(SeroModelConstantIFR)$gamma_NorthEastYorkshireHumber
@@ -55,6 +58,8 @@ SouthEast_data<-read.csv(paste(folder,"/SouthEast_data.csv", sep = ""),header = 
 pop<-read.csv(paste(folder,"/Pop_data.csv", sep = ""),header = TRUE)
 
 delta_p<-14        #fixed time lag between test for virus and death(seroversion)
+
+#Setting delta_epsilon to different values for sensitivity analysis
 delta_epsilon_7<-7  #fixed time lag between exposure and death(seroconversion)
 delta_epsilon<-21  #fixed time lag between exposure and death(seroconversion)
 delta_epsilon_28<-28  #fixed time lag between exposure and death(seroconversion)
@@ -161,42 +166,43 @@ epsilon_London_14<-epsilon_London[,(delta_epsilon_14+1):n_days_London]
 epsilon_London_7<-epsilon_London[,(delta_epsilon_7+1):n_days_London]
 
 
-data1London = data.frame(output = c(rep("Exposure (Scenario 2)", (n_days_London-delta_epsilon)), rep("Seroprevalence (Scenario 1, 2, 3)", n_days_London), rep("Exposure (Scenario 3)",(n_days_London-delta_epsilon_28)),rep("Exposure (Scenario 1)",(n_days_London-delta_epsilon_14))), 
+data1London = data.frame(output = c(rep("Exposure (Model 2)", (n_days_London-delta_epsilon)), rep("Seroprevalence (Model 1, 2, 3)", n_days_London), rep("Exposure (Model 3)",(n_days_London-delta_epsilon_28)),rep("Exposure (Model 1)",(n_days_London-delta_epsilon_14))), 
                          t=c(as.Date(London_data$Date)[1:(n_days_London-delta_epsilon)],as.Date(London_data$Date)[1:n_days_London],as.Date(London_data$Date)[1:(n_days_London-delta_epsilon_28)],as.Date(London_data$Date)[1:(n_days_London-delta_epsilon_14)]), 
-                         median = c(apply(epsilon_London_21, 2, function(x) quantile(x, probs = 0.5)), 
-                                    apply(x_London, 2, function(x) quantile(x, probs = 0.5)),
-                                    apply(epsilon_London_28, 2, function(x) quantile(x, probs = 0.5)),
-                                    apply(epsilon_London_14, 2, function(x) quantile(x, probs = 0.5))), 
-                         lower1 = c(apply(epsilon_London_21, 2, function(x) quantile(x, probs = 0.5)), 
-                                    apply(x_London, 2, function(x) quantile(x, probs = 0.025)),
-                                    apply(epsilon_London_28, 2, function(x) quantile(x, probs = 0.025)),
-                                    apply(epsilon_London_14, 2, function(x) quantile(x, probs = 0.025))), 
-                         upper1 = c(apply(epsilon_London_21, 2, function(x) quantile(x, probs = 0.975)),
-                                    apply(x_London, 2, function(x) quantile(x, probs = 0.975)),
-                                    apply(epsilon_London_28, 2, function(x) quantile(x, probs = 0.975)),
-                                    apply(epsilon_London_14, 2, function(x) quantile(x, probs = 0.975))),
-                         lower2 = c(apply(epsilon_London_21, 2, function(x) quantile(x, probs = 0.25)), 
-                                    apply(x_London, 2, function(x) quantile(x, probs = 0.25)),
-                                    apply(epsilon_London_28, 2, function(x) quantile(x, probs = 0.25)),
-                                    apply(epsilon_London_14, 2, function(x) quantile(x, probs = 0.25))), 
-                         upper2 = c(apply(epsilon_London_21, 2, function(x) quantile(x, probs = 0.75)),
-                                    apply(x_London, 2, function(x) quantile(x, probs = 0.75)),
-                                    apply(epsilon_London_28, 2, function(x) quantile(x, probs = 0.75)),
-                                    apply(epsilon_London_14, 2, function(x) quantile(x, probs = 0.75))))
-data2London = data.frame( t=as.Date(London_data$Date)[1:n_days_London][t2_London], value= London_data$sero[t2_London], upper= London_data$sero_upper[t2_London], lower = London_data$sero_lower[t2_London])
+                         median = c(100*apply(epsilon_London_21, 2, function(x) quantile(x, probs = 0.5)), 
+                                    100*apply(x_London, 2, function(x) quantile(x, probs = 0.5)),
+                                    100*apply(epsilon_London_28, 2, function(x) quantile(x, probs = 0.5)),
+                                    100*apply(epsilon_London_14, 2, function(x) quantile(x, probs = 0.5))), 
+                         lower1 = c(100*apply(epsilon_London_21, 2, function(x) quantile(x, probs = 0.5)), 
+                                    100*apply(x_London, 2, function(x) quantile(x, probs = 0.025)),
+                                    100*apply(epsilon_London_28, 2, function(x) quantile(x, probs = 0.025)),
+                                    100*apply(epsilon_London_14, 2, function(x) quantile(x, probs = 0.025))), 
+                         upper1 = c(100*apply(epsilon_London_21, 2, function(x) quantile(x, probs = 0.975)),
+                                    100*apply(x_London, 2, function(x) quantile(x, probs = 0.975)),
+                                    100*apply(epsilon_London_28, 2, function(x) quantile(x, probs = 0.975)),
+                                    100*apply(epsilon_London_14, 2, function(x) quantile(x, probs = 0.975))),
+                         lower2 = c(100*apply(epsilon_London_21, 2, function(x) quantile(x, probs = 0.25)), 
+                                    100*apply(x_London, 2, function(x) quantile(x, probs = 0.25)),
+                                    100*apply(epsilon_London_28, 2, function(x) quantile(x, probs = 0.25)),
+                                    100*apply(epsilon_London_14, 2, function(x) quantile(x, probs = 0.25))), 
+                         upper2 = c(100*apply(epsilon_London_21, 2, function(x) quantile(x, probs = 0.75)),
+                                    100*apply(x_London, 2, function(x) quantile(x, probs = 0.75)),
+                                    100*apply(epsilon_London_28, 2, function(x) quantile(x, probs = 0.75)),
+                                    100*apply(epsilon_London_14, 2, function(x) quantile(x, probs = 0.75))))
+data2London = data.frame( t=as.Date(London_data$Date)[1:n_days_London][t2_London], value= 100*London_data$sero[t2_London], upper= 100*London_data$sero_upper[t2_London], lower = 100*London_data$sero_lower[t2_London])
 
-p1London<-ggplot(data1London, aes(x=t, y = median, group = output, colour = output)) +
+p1London<-ggplot(data1London, aes(x=t, y = median, group = output,colour=output)) +
+  scale_fill_manual(values=c(colors_Dark[1], colors_Dark[4], colors_Dark[3],colors_Dark[2]))+
   geom_line(size = lwd) +  ggtitle("London")+
   geom_ribbon(aes(ymin=lower1, ymax=upper1, fill = output), alpha=0.2, colour = NA)+
-  geom_ribbon(aes(ymin=lower2, ymax=upper2, fill = output), alpha=0.5, colour = NA)+
-  scale_y_continuous(breaks = c(0,0.05,0.1,0.15,0.2,0.25,0.3), limit = c(0, ymax_exposure),labels = scales::percent_format(accuracy = 1))+
+  # geom_ribbon(aes(ymin=lower2, ymax=upper2, fill = output), alpha=0.5, colour = NA)+
+  scale_y_continuous(breaks = c(0,5,10,15,20,25), limit = c(0, ymax_exposure))+
   scale_x_date(breaks = as.Date(c("2020-01-01","2020-03-01", "2020-05-01", "2020-07-01","2020-09-01",  "2020-11-01")), labels=c("Jan","Mar", "May", "Jul","Sep","Nov"), limit = as.Date(c("2020-01-01","2020-11-07")))+
   geom_pointrange(data=data2London, aes(x=t,y=value,ymin=lower, ymax=upper), inherit.aes = FALSE, shape = 21, size=pt_size, colour = "black", fill = colors_Dark[2])
 styled1London <- p1London +
-  scale_fill_brewer(palette = "Dark2")+
+  # scale_fill_brewer(palette = "Dark2")+
   scale_colour_brewer(palette = "Dark2")+
   theme_minimal() +
-  ylab(" ") +
+  ylab(" Percentage (%) ") +
   xlab(" 2020 ")+
   theme(
     text = element_text(size=font_size),
@@ -205,13 +211,16 @@ styled1London <- p1London +
     legend.justification = c(0, 1),
     legend.position = "None",
     legend.title = element_blank(),
-    axis.title.x = element_text(angle = 0, vjust = -0.005, hjust = 1,size=14),
+    axis.title.y = element_text(size=font_size),
+    axis.title.x = element_text(angle = 0, vjust = -0.005, hjust = 1,size=font_size),
+    axis.text.y = element_text(size=font_size),
+    axis.text.x = element_text(size=font_size),
     axis.ticks = element_line(colour = "grey50", size = 0.2),
     panel.grid.major = element_line(colour = "grey50", size = 0.2),
     panel.grid.minor = element_blank(),
     plot.margin = margin(t=0, r=right_margin, b=0, l=0, "cm")
   )
-# styled1London
+ # styled1London
 ##################
 
 ##############################################
@@ -230,40 +239,41 @@ epsilon_NorthEastYorkshireHumber_28<-epsilon_NorthEastYorkshireHumber[,(delta_ep
 epsilon_NorthEastYorkshireHumber_14<-epsilon_NorthEastYorkshireHumber[,(delta_epsilon_14+1):n_days_NorthEastYorkshireHumber]
 
 
-data1NorthEastYorkshireHumber = data.frame(output = c(rep("Exposure (Scenario 2)", (n_days_NorthEastYorkshireHumber-delta_epsilon)), rep("Seroprevalence (Scenario 1, 2, 3)", n_days_NorthEastYorkshireHumber), rep("Exposure (Scenario 3)",(n_days_NorthEastYorkshireHumber-delta_epsilon_28)),rep("Exposure (Scenario 1)",(n_days_NorthEastYorkshireHumber-delta_epsilon_14))), 
+data1NorthEastYorkshireHumber = data.frame(output = c(rep("Exposure (Model 2)", (n_days_NorthEastYorkshireHumber-delta_epsilon)), rep("Seroprevalence (Model 1, 2, 3)", n_days_NorthEastYorkshireHumber), rep("Exposure (Model 3)",(n_days_NorthEastYorkshireHumber-delta_epsilon_28)),rep("Exposure (Model 1)",(n_days_NorthEastYorkshireHumber-delta_epsilon_14))), 
                                            t=c(as.Date(NorthEast_data$Date)[1:(n_days_NorthEastYorkshireHumber-delta_epsilon)],as.Date(NorthEast_data$Date)[1:n_days_NorthEastYorkshireHumber],as.Date(NorthEast_data$Date)[1:(n_days_NorthEastYorkshireHumber-delta_epsilon_28)],as.Date(NorthEast_data$Date)[1:(n_days_NorthEastYorkshireHumber-delta_epsilon_14)]), 
-                                           median = c(apply(epsilon_NorthEastYorkshireHumber_21, 2, function(x) quantile(x, probs = 0.5)), 
-                                                      apply(x_NorthEastYorkshireHumber, 2, function(x) quantile(x, probs = 0.5)),
-                                                      apply(epsilon_NorthEastYorkshireHumber_28, 2, function(x) quantile(x, probs = 0.5)),
-                                                      apply(epsilon_NorthEastYorkshireHumber_14, 2, function(x) quantile(x, probs = 0.5))), 
-                                           lower1 = c(apply(epsilon_NorthEastYorkshireHumber_21, 2, function(x) quantile(x, probs = 0.5)), 
-                                                      apply(x_NorthEastYorkshireHumber, 2, function(x) quantile(x, probs = 0.025)),
-                                                      apply(epsilon_NorthEastYorkshireHumber_28, 2, function(x) quantile(x, probs = 0.025)),
-                                                      apply(epsilon_NorthEastYorkshireHumber_14, 2, function(x) quantile(x, probs = 0.025))), 
-                                           upper1 = c(apply(epsilon_NorthEastYorkshireHumber_21, 2, function(x) quantile(x, probs = 0.975)),
-                                                      apply(x_NorthEastYorkshireHumber, 2, function(x) quantile(x, probs = 0.975)),
-                                                      apply(epsilon_NorthEastYorkshireHumber_28, 2, function(x) quantile(x, probs = 0.975)),
-                                                      apply(epsilon_NorthEastYorkshireHumber_14, 2, function(x) quantile(x, probs = 0.975))),
-                                           lower2 = c(apply(epsilon_NorthEastYorkshireHumber_21, 2, function(x) quantile(x, probs = 0.25)), 
-                                                      apply(x_NorthEastYorkshireHumber, 2, function(x) quantile(x, probs = 0.25)),
-                                                      apply(epsilon_NorthEastYorkshireHumber_28, 2, function(x) quantile(x, probs = 0.25)),
-                                                      apply(epsilon_NorthEastYorkshireHumber_14, 2, function(x) quantile(x, probs = 0.25))), 
-                                           upper2 = c(apply(epsilon_NorthEastYorkshireHumber_21, 2, function(x) quantile(x, probs = 0.75)),
-                                                      apply(x_NorthEastYorkshireHumber, 2, function(x) quantile(x, probs = 0.75)),
-                                                      apply(epsilon_NorthEastYorkshireHumber_28, 2, function(x) quantile(x, probs = 0.75)),
-                                                      apply(epsilon_NorthEastYorkshireHumber_14, 2, function(x) quantile(x, probs = 0.75))))
-data2NorthEastYorkshireHumber = data.frame( t=as.Date(NorthEast_data$Date)[1:n_days_NorthEastYorkshireHumber][t2_NorthEastYorkshireHumber], value= NorthEast_data$sero[t2_NorthEastYorkshireHumber], upper= NorthEast_data$sero_upper[t2_NorthEastYorkshireHumber], lower = NorthEast_data$sero_lower[t2_NorthEastYorkshireHumber])
+                                           median = c(100*apply(epsilon_NorthEastYorkshireHumber_21, 2, function(x) quantile(x, probs = 0.5)), 
+                                                      100*apply(x_NorthEastYorkshireHumber, 2, function(x) quantile(x, probs = 0.5)),
+                                                      100*apply(epsilon_NorthEastYorkshireHumber_28, 2, function(x) quantile(x, probs = 0.5)),
+                                                      100*apply(epsilon_NorthEastYorkshireHumber_14, 2, function(x) quantile(x, probs = 0.5))), 
+                                           lower1 = c(100*apply(epsilon_NorthEastYorkshireHumber_21, 2, function(x) quantile(x, probs = 0.5)), 
+                                                      100*apply(x_NorthEastYorkshireHumber, 2, function(x) quantile(x, probs = 0.025)),
+                                                      100*apply(epsilon_NorthEastYorkshireHumber_28, 2, function(x) quantile(x, probs = 0.025)),
+                                                      100*apply(epsilon_NorthEastYorkshireHumber_14, 2, function(x) quantile(x, probs = 0.025))), 
+                                           upper1 = c(100*apply(epsilon_NorthEastYorkshireHumber_21, 2, function(x) quantile(x, probs = 0.975)),
+                                                      100*apply(x_NorthEastYorkshireHumber, 2, function(x) quantile(x, probs = 0.975)),
+                                                      100*apply(epsilon_NorthEastYorkshireHumber_28, 2, function(x) quantile(x, probs = 0.975)),
+                                                      100*apply(epsilon_NorthEastYorkshireHumber_14, 2, function(x) quantile(x, probs = 0.975))),
+                                           lower2 = c(100*apply(epsilon_NorthEastYorkshireHumber_21, 2, function(x) quantile(x, probs = 0.25)), 
+                                                      100*apply(x_NorthEastYorkshireHumber, 2, function(x) quantile(x, probs = 0.25)),
+                                                      100*apply(epsilon_NorthEastYorkshireHumber_28, 2, function(x) quantile(x, probs = 0.25)),
+                                                      100*apply(epsilon_NorthEastYorkshireHumber_14, 2, function(x) quantile(x, probs = 0.25))), 
+                                           upper2 = c(100*apply(epsilon_NorthEastYorkshireHumber_21, 2, function(x) quantile(x, probs = 0.75)),
+                                                      100*apply(x_NorthEastYorkshireHumber, 2, function(x) quantile(x, probs = 0.75)),
+                                                      100*apply(epsilon_NorthEastYorkshireHumber_28, 2, function(x) quantile(x, probs = 0.75)),
+                                                      100*apply(epsilon_NorthEastYorkshireHumber_14, 2, function(x) quantile(x, probs = 0.75))))
+data2NorthEastYorkshireHumber = data.frame( t=as.Date(NorthEast_data$Date)[1:n_days_NorthEastYorkshireHumber][t2_NorthEastYorkshireHumber], value= 100*NorthEast_data$sero[t2_NorthEastYorkshireHumber], upper= 100*NorthEast_data$sero_upper[t2_NorthEastYorkshireHumber], lower = NorthEast_data$sero_lower[t2_NorthEastYorkshireHumber])
 
 
 p1NorthEastYorkshireHumber<-ggplot(data1NorthEastYorkshireHumber, aes(x=t, y = median, group = output, colour = output)) +
+  scale_fill_manual(values=c(colors_Dark[1], colors_Dark[4], colors_Dark[3],colors_Dark[2]))+
   geom_line(size = lwd) +  ggtitle("North East")+
   geom_ribbon(aes(ymin=lower1, ymax=upper1, fill = output), alpha=0.2, colour = NA)+
-  geom_ribbon(aes(ymin=lower2, ymax=upper2, fill = output), alpha=0.5, colour = NA)+
-  scale_y_continuous(breaks = c(0,0.05,0.1,0.15,0.2,0.25,0.3), limit = c(0, ymax_exposure),labels = scales::percent_format(accuracy = 1))+
+  # geom_ribbon(aes(ymin=lower2, ymax=upper2, fill = output), alpha=0.5, colour = NA)+
+  scale_y_continuous(breaks = c(0,5,10,15,20,25), limit = c(0, ymax_exposure))+
   scale_x_date(breaks = as.Date(c("2020-01-01","2020-03-01", "2020-05-01", "2020-07-01","2020-09-01",  "2020-11-01")), labels=c("Jan","Mar", "May", "Jul","Sep","Nov"), limit = as.Date(c("2020-01-01","2020-11-07")))+
   geom_pointrange(data=data2NorthEastYorkshireHumber, aes(x=t,y=value,ymin=lower, ymax=upper), inherit.aes = FALSE, shape = 21, size=pt_size, colour = "black", fill = colors_Dark[2])
 styled1NorthEastYorkshireHumber <- p1NorthEastYorkshireHumber +
-  scale_fill_brewer(palette = "Dark2")+
+  # scale_fill_brewer(palette = "Dark2")+
   scale_colour_brewer(palette = "Dark2")+
   theme_minimal() +
   ylab(" ") +
@@ -277,7 +287,8 @@ styled1NorthEastYorkshireHumber <- p1NorthEastYorkshireHumber +
     legend.title = element_blank(),
     axis.title.y = element_blank(),
     axis.text.y = element_blank(),
-    axis.title.x = element_text(angle = 0, vjust = -0.005, hjust = 1,size=14),
+    axis.text.x = element_text(size=font_size),
+    axis.title.x = element_text(angle = 0, vjust = -0.005, hjust = 1,size=font_size),
     axis.ticks = element_line(colour = "grey50", size = 0.2),
     panel.grid.major = element_line(colour = "grey50", size = 0.2),
     panel.grid.minor = element_blank(),
@@ -301,39 +312,40 @@ epsilon_NorthWest_21<-epsilon_NorthWest[,(delta_epsilon+1):n_days_NorthWest]
 epsilon_NorthWest_28<-epsilon_NorthWest[,(delta_epsilon_28+1):n_days_NorthWest]
 epsilon_NorthWest_14<-epsilon_NorthWest[,(delta_epsilon_14+1):n_days_NorthWest]
 
-data1NorthWest = data.frame(output = c(rep("Exposure (Scenario 2)", (n_days_NorthWest-delta_epsilon)), rep("Seroprevalence (Scenario 1, 2, 3)", n_days_NorthWest), rep("Exposure (Scenario 3)",(n_days_NorthWest-delta_epsilon_28)),rep("Exposure (Scenario 1)",(n_days_NorthWest-delta_epsilon_14))), 
+data1NorthWest = data.frame(output = c(rep("Exposure (Model 2)", (n_days_NorthWest-delta_epsilon)), rep("Seroprevalence (Model 1, 2, 3)", n_days_NorthWest), rep("Exposure (Model 3)",(n_days_NorthWest-delta_epsilon_28)),rep("Exposure (Model 1)",(n_days_NorthWest-delta_epsilon_14))), 
                             t=c(as.Date(NorthWest_data$Date)[1:(n_days_NorthWest-delta_epsilon)],as.Date(NorthWest_data$Date)[1:n_days_NorthWest],as.Date(NorthWest_data$Date)[1:(n_days_NorthWest-delta_epsilon_28)],as.Date(NorthWest_data$Date)[1:(n_days_NorthWest-delta_epsilon_14)]), 
-                            median = c(apply(epsilon_NorthWest_21, 2, function(x) quantile(x, probs = 0.5)), 
-                                       apply(x_NorthWest, 2, function(x) quantile(x, probs = 0.5)),
-                                       apply(epsilon_NorthWest_28, 2, function(x) quantile(x, probs = 0.5)),
-                                       apply(epsilon_NorthWest_14, 2, function(x) quantile(x, probs = 0.5))), 
-                            lower1 = c(apply(epsilon_NorthWest_21, 2, function(x) quantile(x, probs = 0.5)), 
-                                       apply(x_NorthWest, 2, function(x) quantile(x, probs = 0.025)),
-                                       apply(epsilon_NorthWest_28, 2, function(x) quantile(x, probs = 0.025)),
-                                       apply(epsilon_NorthWest_14, 2, function(x) quantile(x, probs = 0.025))), 
-                            upper1 = c(apply(epsilon_NorthWest_21, 2, function(x) quantile(x, probs = 0.975)),
-                                       apply(x_NorthWest, 2, function(x) quantile(x, probs = 0.975)),
-                                       apply(epsilon_NorthWest_28, 2, function(x) quantile(x, probs = 0.975)),
-                                       apply(epsilon_NorthWest_14, 2, function(x) quantile(x, probs = 0.975))),
-                            lower2 = c(apply(epsilon_NorthWest_21, 2, function(x) quantile(x, probs = 0.25)), 
-                                       apply(x_NorthWest, 2, function(x) quantile(x, probs = 0.25)),
-                                       apply(epsilon_NorthWest_28, 2, function(x) quantile(x, probs = 0.25)),
-                                       apply(epsilon_NorthWest_14, 2, function(x) quantile(x, probs = 0.25))), 
-                            upper2 = c(apply(epsilon_NorthWest_21, 2, function(x) quantile(x, probs = 0.75)),
-                                       apply(x_NorthWest, 2, function(x) quantile(x, probs = 0.75)),
-                                       apply(epsilon_NorthWest_28, 2, function(x) quantile(x, probs = 0.75)),
-                                       apply(epsilon_NorthWest_14, 2, function(x) quantile(x, probs = 0.75))))
-data2NorthWest = data.frame( t=as.Date(NorthWest_data$Date)[1:n_days_NorthWest][t2_NorthWest], value= NorthWest_data$sero[t2_NorthWest], upper= NorthWest_data$sero_upper[t2_NorthWest], lower = NorthWest_data$sero_lower[t2_NorthWest])
+                            median = c(100*apply(epsilon_NorthWest_21, 2, function(x) quantile(x, probs = 0.5)), 
+                                       100*apply(x_NorthWest, 2, function(x) quantile(x, probs = 0.5)),
+                                       100*apply(epsilon_NorthWest_28, 2, function(x) quantile(x, probs = 0.5)),
+                                       100*apply(epsilon_NorthWest_14, 2, function(x) quantile(x, probs = 0.5))), 
+                            lower1 = c(100*apply(epsilon_NorthWest_21, 2, function(x) quantile(x, probs = 0.5)), 
+                                       100*apply(x_NorthWest, 2, function(x) quantile(x, probs = 0.025)),
+                                       100*apply(epsilon_NorthWest_28, 2, function(x) quantile(x, probs = 0.025)),
+                                       100*apply(epsilon_NorthWest_14, 2, function(x) quantile(x, probs = 0.025))), 
+                            upper1 = c(100*apply(epsilon_NorthWest_21, 2, function(x) quantile(x, probs = 0.975)),
+                                       100*apply(x_NorthWest, 2, function(x) quantile(x, probs = 0.975)),
+                                       100*apply(epsilon_NorthWest_28, 2, function(x) quantile(x, probs = 0.975)),
+                                       100*apply(epsilon_NorthWest_14, 2, function(x) quantile(x, probs = 0.975))),
+                            lower2 = c(100*apply(epsilon_NorthWest_21, 2, function(x) quantile(x, probs = 0.25)), 
+                                       100*apply(x_NorthWest, 2, function(x) quantile(x, probs = 0.25)),
+                                       100*apply(epsilon_NorthWest_28, 2, function(x) quantile(x, probs = 0.25)),
+                                       100*apply(epsilon_NorthWest_14, 2, function(x) quantile(x, probs = 0.25))), 
+                            upper2 = c(100*apply(epsilon_NorthWest_21, 2, function(x) quantile(x, probs = 0.75)),
+                                       100*apply(x_NorthWest, 2, function(x) quantile(x, probs = 0.75)),
+                                       100*apply(epsilon_NorthWest_28, 2, function(x) quantile(x, probs = 0.75)),
+                                       100*apply(epsilon_NorthWest_14, 2, function(x) quantile(x, probs = 0.75))))
+data2NorthWest = data.frame( t=as.Date(NorthWest_data$Date)[1:n_days_NorthWest][t2_NorthWest], value= 100*NorthWest_data$sero[t2_NorthWest], upper= 100*NorthWest_data$sero_upper[t2_NorthWest], lower = 100*NorthWest_data$sero_lower[t2_NorthWest])
 
 p1NorthWest<-ggplot(data1NorthWest, aes(x=t, y = median, group = output, colour = output)) +
+  scale_fill_manual(values=c(colors_Dark[1], colors_Dark[4], colors_Dark[3],colors_Dark[2]))+
   geom_line(size = lwd) +  ggtitle("North West")+
   geom_ribbon(aes(ymin=lower1, ymax=upper1, fill = output), alpha=0.2, colour = NA)+
-  geom_ribbon(aes(ymin=lower2, ymax=upper2, fill = output), alpha=0.5, colour = NA)+
-  scale_y_continuous(breaks = c(0,0.05,0.1,0.15,0.2,0.25,0.3), limit = c(0, ymax_exposure),labels = scales::percent_format(accuracy = 1))+
+  # geom_ribbon(aes(ymin=lower2, ymax=upper2, fill = output), alpha=0.5, colour = NA)+
+  scale_y_continuous(breaks = c(0,5,10,15,20,25), limit = c(0, ymax_exposure))+
   scale_x_date(breaks = as.Date(c("2020-01-01","2020-03-01", "2020-05-01", "2020-07-01","2020-09-01",  "2020-11-01")), labels=c("Jan","Mar", "May", "Jul","Sep","Nov"), limit = as.Date(c("2020-01-01","2020-11-07")))+
   geom_pointrange(data=data2NorthWest, aes(x=t,y=value,ymin=lower, ymax=upper), inherit.aes = FALSE, shape = 21, size=pt_size, colour = "black", fill = colors_Dark[2])
 styled1NorthWest <- p1NorthWest +
-  scale_fill_brewer(palette = "Dark2")+
+  # scale_fill_brewer(palette = "Dark2")+
   scale_colour_brewer(palette = "Dark2")+
   theme_minimal() +
   ylab(" ") +
@@ -344,10 +356,11 @@ styled1NorthWest <- p1NorthWest +
     legend.background = element_rect(fill = "white", size = 1.25, colour = "white"),
     legend.justification = c(0, 1),
     legend.position = "None",
-    axis.title.x = element_text(angle = 0, vjust = -0.005, hjust = 1,size=14),
+    axis.title.x = element_text(angle = 0, vjust = -0.005, hjust = 1,size=font_size),
     legend.title = element_blank(),
     axis.title.y = element_blank(),
     axis.text.y = element_blank(),
+    axis.text.x = element_text(size=font_size),
     axis.ticks = element_line(colour = "grey50", size = 0.2),
     panel.grid.major = element_line(colour = "grey50", size = 0.2),
     panel.grid.minor = element_blank(),
@@ -371,39 +384,40 @@ epsilon_SouthEast_21<-epsilon_SouthEast[,(delta_epsilon+1):n_days_SouthEast]
 epsilon_SouthEast_28<-epsilon_SouthEast[,(delta_epsilon_28+1):n_days_SouthEast]
 epsilon_SouthEast_14<-epsilon_SouthEast[,(delta_epsilon_14+1):n_days_SouthEast]
 
-data1SouthEast = data.frame(output = c(rep("Exposure (Scenario 2)", (n_days_SouthEast-delta_epsilon)), rep("Seroprevalence (Scenario 1, 2, 3)", n_days_SouthEast), rep("Exposure (Scenario 3)",(n_days_SouthEast-delta_epsilon_28)),rep("Exposure (Scenario 1)",(n_days_SouthEast-delta_epsilon_14))), 
+data1SouthEast = data.frame(output = c(rep("Exposure (Model 2)", (n_days_SouthEast-delta_epsilon)), rep("Seroprevalence (Model 1, 2, 3)", n_days_SouthEast), rep("Exposure (Model 3)",(n_days_SouthEast-delta_epsilon_28)),rep("Exposure (Model 1)",(n_days_SouthEast-delta_epsilon_14))), 
                             t=c(as.Date(SouthEast_data$Date)[1:(n_days_SouthEast-delta_epsilon)],as.Date(SouthEast_data$Date)[1:n_days_SouthEast],as.Date(SouthEast_data$Date)[1:(n_days_SouthEast-delta_epsilon_28)],as.Date(SouthEast_data$Date)[1:(n_days_SouthEast-delta_epsilon_14)]), 
-                            median = c(apply(epsilon_SouthEast_21, 2, function(x) quantile(x, probs = 0.5)), 
-                                       apply(x_SouthEast, 2, function(x) quantile(x, probs = 0.5)),
-                                       apply(epsilon_SouthEast_28, 2, function(x) quantile(x, probs = 0.5)),
-                                       apply(epsilon_SouthEast_14, 2, function(x) quantile(x, probs = 0.5))), 
-                            lower1 = c(apply(epsilon_SouthEast_21, 2, function(x) quantile(x, probs = 0.5)), 
-                                       apply(x_SouthEast, 2, function(x) quantile(x, probs = 0.025)),
-                                       apply(epsilon_SouthEast_28, 2, function(x) quantile(x, probs = 0.025)),
-                                       apply(epsilon_SouthEast_14, 2, function(x) quantile(x, probs = 0.025))), 
-                            upper1 = c(apply(epsilon_SouthEast_21, 2, function(x) quantile(x, probs = 0.975)),
-                                       apply(x_SouthEast, 2, function(x) quantile(x, probs = 0.975)),
-                                       apply(epsilon_SouthEast_28, 2, function(x) quantile(x, probs = 0.975)),
-                                       apply(epsilon_SouthEast_14, 2, function(x) quantile(x, probs = 0.975))),
-                            lower2 = c(apply(epsilon_SouthEast_21, 2, function(x) quantile(x, probs = 0.25)), 
-                                       apply(x_SouthEast, 2, function(x) quantile(x, probs = 0.25)),
-                                       apply(epsilon_SouthEast_28, 2, function(x) quantile(x, probs = 0.25)),
-                                       apply(epsilon_SouthEast_14, 2, function(x) quantile(x, probs = 0.25))), 
-                            upper2 = c(apply(epsilon_SouthEast_21, 2, function(x) quantile(x, probs = 0.75)),
-                                       apply(x_SouthEast, 2, function(x) quantile(x, probs = 0.75)),
-                                       apply(epsilon_SouthEast_28, 2, function(x) quantile(x, probs = 0.75)),
-                                       apply(epsilon_SouthEast_14, 2, function(x) quantile(x, probs = 0.75))))
-data2SouthEast = data.frame( t=as.Date(SouthEast_data$Date)[1:n_days_SouthEast][t2_SouthEast], value= SouthEast_data$sero[t2_SouthEast], upper= SouthEast_data$sero_upper[t2_SouthEast], lower = SouthEast_data$sero_lower[t2_SouthEast])
+                            median = c(100*apply(epsilon_SouthEast_21, 2, function(x) quantile(x, probs = 0.5)), 
+                                       100*apply(x_SouthEast, 2, function(x) quantile(x, probs = 0.5)),
+                                       100*apply(epsilon_SouthEast_28, 2, function(x) quantile(x, probs = 0.5)),
+                                       100*apply(epsilon_SouthEast_14, 2, function(x) quantile(x, probs = 0.5))), 
+                            lower1 = c(100*apply(epsilon_SouthEast_21, 2, function(x) quantile(x, probs = 0.5)), 
+                                       100*apply(x_SouthEast, 2, function(x) quantile(x, probs = 0.025)),
+                                       100*apply(epsilon_SouthEast_28, 2, function(x) quantile(x, probs = 0.025)),
+                                       100*apply(epsilon_SouthEast_14, 2, function(x) quantile(x, probs = 0.025))), 
+                            upper1 = c(100*apply(epsilon_SouthEast_21, 2, function(x) quantile(x, probs = 0.975)),
+                                       100*apply(x_SouthEast, 2, function(x) quantile(x, probs = 0.975)),
+                                       100*apply(epsilon_SouthEast_28, 2, function(x) quantile(x, probs = 0.975)),
+                                       100*apply(epsilon_SouthEast_14, 2, function(x) quantile(x, probs = 0.975))),
+                            lower2 = c(100*apply(epsilon_SouthEast_21, 2, function(x) quantile(x, probs = 0.25)), 
+                                       100*apply(x_SouthEast, 2, function(x) quantile(x, probs = 0.25)),
+                                       100*apply(epsilon_SouthEast_28, 2, function(x) quantile(x, probs = 0.25)),
+                                       100*apply(epsilon_SouthEast_14, 2, function(x) quantile(x, probs = 0.25))), 
+                            upper2 = c(100*apply(epsilon_SouthEast_21, 2, function(x) quantile(x, probs = 0.75)),
+                                       100*apply(x_SouthEast, 2, function(x) quantile(x, probs = 0.75)),
+                                       100*apply(epsilon_SouthEast_28, 2, function(x) quantile(x, probs = 0.75)),
+                                       100*apply(epsilon_SouthEast_14, 2, function(x) quantile(x, probs = 0.75))))
+data2SouthEast = data.frame( t=as.Date(SouthEast_data$Date)[1:n_days_SouthEast][t2_SouthEast], value= 100*SouthEast_data$sero[t2_SouthEast], upper= 100*SouthEast_data$sero_upper[t2_SouthEast], lower = 100*SouthEast_data$sero_lower[t2_SouthEast])
 
 p1SouthEast<-ggplot(data1SouthEast, aes(x=t, y = median, group = output, colour = output)) +
+  scale_fill_manual(values=c(colors_Dark[1], colors_Dark[4], colors_Dark[3],colors_Dark[2]))+
   geom_line(size = lwd) +  ggtitle("South East")+
   geom_ribbon(aes(ymin=lower1, ymax=upper1, fill = output), alpha=0.2, colour = NA)+
-  geom_ribbon(aes(ymin=lower2, ymax=upper2, fill = output), alpha=0.5, colour = NA)+
-  scale_y_continuous(breaks = c(0,0.05,0.10,0.15,0.20,0.25,0.30), limit = c(0, ymax_exposure))+
+  # geom_ribbon(aes(ymin=lower2, ymax=upper2, fill = output), alpha=0.5, colour = NA)+
+  scale_y_continuous(breaks = c(0,5,10,15,20,25), limit = c(0, ymax_exposure))+
   scale_x_date(breaks = as.Date(c("2020-01-01","2020-03-01", "2020-05-01", "2020-07-01","2020-09-01",  "2020-11-01")), labels=c("Jan","Mar", "May", "Jul","Sep","Nov"), limit = as.Date(c("2020-01-01","2020-11-07")))+
   geom_pointrange(data=data2SouthEast, aes(x=t,y=value,ymin=lower, ymax=upper), inherit.aes = FALSE, shape = 21, size=pt_size, colour = "black", fill = colors_Dark[2])
 styled1SouthEast <- p1SouthEast +
-  scale_fill_brewer(palette = "Dark2")+
+  # scale_fill_brewer(palette = "Dark2")+
   scale_colour_brewer(palette = "Dark2")+
   theme_minimal() +
   ylab(" ") +
@@ -413,11 +427,13 @@ styled1SouthEast <- p1SouthEast +
     plot.title = element_text(face = "bold", size = font_size_title,hjust = 0.5),
     legend.background = element_rect(fill = "white", size = 1.25, colour = "white"),
     legend.justification = c(0, 1),
-    legend.position = c(-0.1,-0.2),
+    legend.position = c(-0.01,-0.3),
+    legend.text=element_text(size=font_size),
     legend.title = element_blank(),
-    axis.title.x = element_text(angle = 0, vjust = -0.005, hjust = 1,size=14),
+    axis.title.x = element_text(angle = 0, vjust = -0.005, hjust = 1,size=font_size),
     axis.title.y = element_blank(),
     axis.text.y = element_blank(),
+    axis.text.x = element_text(size=font_size),
     axis.ticks = element_line(colour = "grey50", size = 0.2),
     panel.grid.major = element_line(colour = "grey50", size = 0.2),
     panel.grid.minor = element_blank(),
@@ -442,42 +458,43 @@ epsilon_SouthWest_28<-epsilon_SouthWest[,(delta_epsilon_28+1):n_days_SouthWest]
 epsilon_SouthWest_14<-epsilon_SouthWest[,(delta_epsilon_14+1):n_days_SouthWest]
 
 
-data1SouthWest = data.frame(output = c(rep("Exposure (Scenario 2)", (n_days_SouthWest-delta_epsilon)), rep("Seroprevalence (Scenario 1, 2, 3)", n_days_SouthWest), rep("Exposure (Scenario 3)",(n_days_SouthWest-delta_epsilon_28)),rep("Exposure (Scenario 1)",(n_days_SouthWest-delta_epsilon_14))), 
+data1SouthWest = data.frame(output = c(rep("Exposure (Model 2)", (n_days_SouthWest-delta_epsilon)), rep("Seroprevalence (Model 1, 2, 3)", n_days_SouthWest), rep("Exposure (Model 3)",(n_days_SouthWest-delta_epsilon_28)),rep("Exposure (Model 1)",(n_days_SouthWest-delta_epsilon_14))), 
                             t=c(as.Date(SouthWest_data$Date)[1:(n_days_SouthWest-delta_epsilon)],as.Date(SouthWest_data$Date)[1:n_days_SouthWest],as.Date(SouthWest_data$Date)[1:(n_days_SouthWest-delta_epsilon_28)],as.Date(SouthWest_data$Date)[1:(n_days_SouthWest-delta_epsilon_14)]), 
-                            median = c(apply(epsilon_SouthWest_21, 2, function(x) quantile(x, probs = 0.5)), 
-                                       apply(x_SouthWest, 2, function(x) quantile(x, probs = 0.5)),
-                                       apply(epsilon_SouthWest_28, 2, function(x) quantile(x, probs = 0.5)),
-                                       apply(epsilon_SouthWest_14, 2, function(x) quantile(x, probs = 0.5))), 
-                            lower1 = c(apply(epsilon_SouthWest_21, 2, function(x) quantile(x, probs = 0.5)), 
-                                       apply(x_SouthWest, 2, function(x) quantile(x, probs = 0.025)),
-                                       apply(epsilon_SouthWest_28, 2, function(x) quantile(x, probs = 0.025)),
-                                       apply(epsilon_SouthWest_14, 2, function(x) quantile(x, probs = 0.025))), 
-                            upper1 = c(apply(epsilon_SouthWest_21, 2, function(x) quantile(x, probs = 0.975)),
-                                       apply(x_SouthWest, 2, function(x) quantile(x, probs = 0.975)),
-                                       apply(epsilon_SouthWest_28, 2, function(x) quantile(x, probs = 0.975)),
-                                       apply(epsilon_SouthWest_14, 2, function(x) quantile(x, probs = 0.975))),
-                            lower2 = c(apply(epsilon_SouthWest_21, 2, function(x) quantile(x, probs = 0.25)), 
-                                       apply(x_SouthWest, 2, function(x) quantile(x, probs = 0.25)),
-                                       apply(epsilon_SouthWest_28, 2, function(x) quantile(x, probs = 0.25)),
-                                       apply(epsilon_SouthWest_14, 2, function(x) quantile(x, probs = 0.25))), 
-                            upper2 = c(apply(epsilon_SouthWest_21, 2, function(x) quantile(x, probs = 0.75)),
-                                       apply(x_SouthWest, 2, function(x) quantile(x, probs = 0.75)),
-                                       apply(epsilon_SouthWest_28, 2, function(x) quantile(x, probs = 0.75)),
-                                       apply(epsilon_SouthWest_14, 2, function(x) quantile(x, probs = 0.75))))
-data2SouthWest = data.frame( t=as.Date(SouthWest_data$Date)[1:n_days_SouthWest][t2_SouthWest], value= SouthWest_data$sero[t2_SouthWest], upper= SouthWest_data$sero_upper[t2_SouthWest], lower = SouthWest_data$sero_lower[t2_SouthWest])
+                            median = c(100*apply(epsilon_SouthWest_21, 2, function(x) quantile(x, probs = 0.5)), 
+                                       100*apply(x_SouthWest, 2, function(x) quantile(x, probs = 0.5)),
+                                       100*apply(epsilon_SouthWest_28, 2, function(x) quantile(x, probs = 0.5)),
+                                       100*apply(epsilon_SouthWest_14, 2, function(x) quantile(x, probs = 0.5))), 
+                            lower1 = c(100*apply(epsilon_SouthWest_21, 2, function(x) quantile(x, probs = 0.5)), 
+                                       100*apply(x_SouthWest, 2, function(x) quantile(x, probs = 0.025)),
+                                       100*apply(epsilon_SouthWest_28, 2, function(x) quantile(x, probs = 0.025)),
+                                       100*apply(epsilon_SouthWest_14, 2, function(x) quantile(x, probs = 0.025))), 
+                            upper1 = c(100*apply(epsilon_SouthWest_21, 2, function(x) quantile(x, probs = 0.975)),
+                                       100*apply(x_SouthWest, 2, function(x) quantile(x, probs = 0.975)),
+                                       100*apply(epsilon_SouthWest_28, 2, function(x) quantile(x, probs = 0.975)),
+                                       100*apply(epsilon_SouthWest_14, 2, function(x) quantile(x, probs = 0.975))),
+                            lower2 = c(100*apply(epsilon_SouthWest_21, 2, function(x) quantile(x, probs = 0.25)), 
+                                       100*apply(x_SouthWest, 2, function(x) quantile(x, probs = 0.25)),
+                                       100*apply(epsilon_SouthWest_28, 2, function(x) quantile(x, probs = 0.25)),
+                                       100*apply(epsilon_SouthWest_14, 2, function(x) quantile(x, probs = 0.25))), 
+                            upper2 = c(100*apply(epsilon_SouthWest_21, 2, function(x) quantile(x, probs = 0.75)),
+                                       100*apply(x_SouthWest, 2, function(x) quantile(x, probs = 0.75)),
+                                       100*apply(epsilon_SouthWest_28, 2, function(x) quantile(x, probs = 0.75)),
+                                       100*apply(epsilon_SouthWest_14, 2, function(x) quantile(x, probs = 0.75))))
+data2SouthWest = data.frame( t=as.Date(SouthWest_data$Date)[1:n_days_SouthWest][t2_SouthWest], value= 100*SouthWest_data$sero[t2_SouthWest], upper= 100*SouthWest_data$sero_upper[t2_SouthWest], lower = 100*SouthWest_data$sero_lower[t2_SouthWest])
 
 p1SouthWest<-ggplot(data1SouthWest, aes(x=t, y = median, group = output, colour = output)) +
+  scale_fill_manual(values=c(colors_Dark[1], colors_Dark[4], colors_Dark[3],colors_Dark[2]))+
   geom_line(size = lwd) +  ggtitle("South West")+
   geom_ribbon(aes(ymin=lower1, ymax=upper1, fill = output), alpha=0.2, colour = NA)+
-  geom_ribbon(aes(ymin=lower2, ymax=upper2, fill = output), alpha=0.5, colour = NA)+
-  scale_y_continuous(breaks = c(0,0.05,0.1,0.15,0.2,0.25,0.3), limit = c(0, ymax_exposure),labels = scales::percent_format(accuracy = 1))+
+  # geom_ribbon(aes(ymin=lower2, ymax=upper2, fill = output), alpha=0.5, colour = NA)+
+  scale_y_continuous(breaks = c(0,5,10,15,20,25), limit = c(0, ymax_exposure))+
   scale_x_date(breaks = as.Date(c("2020-01-01","2020-03-01", "2020-05-01", "2020-07-01","2020-09-01",  "2020-11-01")), labels=c("Jan","Mar", "May", "Jul","Sep","Nov"), limit = as.Date(c("2020-01-01","2020-11-07")))+
   geom_pointrange(data=data2SouthWest, aes(x=t,y=value,ymin=lower, ymax=upper), inherit.aes = FALSE, shape = 21, size=pt_size, colour = "black", fill = colors_Dark[2])
 styled1SouthWest <- p1SouthWest +
-  scale_fill_brewer(palette = "Dark2")+
+  # scale_fill_brewer(palette = "Dark2")+
   scale_colour_brewer(palette = "Dark2")+
   theme_minimal() +
-  ylab(" ") +
+  ylab(" Percentage (%)") +
   xlab(" 2020 ")+
   theme(
     text = element_text(size=font_size),
@@ -487,7 +504,10 @@ styled1SouthWest <- p1SouthWest +
     legend.position = "None",
     legend.title = element_blank(),
     axis.ticks = element_line(colour = "grey50", size = 0.2),
-    axis.title.x = element_text(angle = 0, vjust = -0.005, hjust = 1,size=14),
+    axis.title.y = element_text(size=font_size),
+    axis.title.x = element_text(angle = 0, vjust = -0.005, hjust = 1,size=font_size),
+    axis.text.y = element_text(size=font_size),
+    axis.text.x = element_text(size=font_size),
     panel.grid.major = element_line(colour = "grey50", size = 0.2),
     panel.grid.minor = element_blank(),
     plot.margin = margin(t=0, r=right_margin, b=0, l=0, "cm")
@@ -511,39 +531,40 @@ epsilon_Midlands_28<-epsilon_Midlands[,(delta_epsilon_28+1):n_days_Midlands]
 epsilon_Midlands_14<-epsilon_Midlands[,(delta_epsilon_14+1):n_days_Midlands]
 
 
-data1Midlands = data.frame(output = c(rep("Exposure (Scenario 2)", (n_days_Midlands-delta_epsilon)), rep("Seroprevalence (Scenario 1, 2, 3)", n_days_Midlands), rep("Exposure (Scenario 3)",(n_days_Midlands-delta_epsilon_28)),rep("Exposure (Scenario 1)",(n_days_Midlands-delta_epsilon_14))), 
+data1Midlands = data.frame(output = c(rep("Exposure (Model 2)", (n_days_Midlands-delta_epsilon)), rep("Seroprevalence (Model 1, 2, 3)", n_days_Midlands), rep("Exposure (Model 3)",(n_days_Midlands-delta_epsilon_28)),rep("Exposure (Model 1)",(n_days_Midlands-delta_epsilon_14))), 
                            t=c(as.Date(EastMidlands_data$Date)[1:(n_days_Midlands-delta_epsilon)],as.Date(EastMidlands_data$Date)[1:n_days_Midlands],as.Date(EastMidlands_data$Date)[1:(n_days_Midlands-delta_epsilon_28)],as.Date(EastMidlands_data$Date)[1:(n_days_Midlands-delta_epsilon_14)]), 
-                           median = c(apply(epsilon_Midlands_21, 2, function(x) quantile(x, probs = 0.5)), 
-                                      apply(x_Midlands, 2, function(x) quantile(x, probs = 0.5)),
-                                      apply(epsilon_Midlands_28, 2, function(x) quantile(x, probs = 0.5)),
-                                      apply(epsilon_Midlands_14, 2, function(x) quantile(x, probs = 0.5))), 
-                           lower1 = c(apply(epsilon_Midlands_21, 2, function(x) quantile(x, probs = 0.5)), 
-                                      apply(x_Midlands, 2, function(x) quantile(x, probs = 0.025)),
-                                      apply(epsilon_Midlands_28, 2, function(x) quantile(x, probs = 0.025)),
-                                      apply(epsilon_Midlands_14, 2, function(x) quantile(x, probs = 0.025))), 
-                           upper1 = c(apply(epsilon_Midlands_21, 2, function(x) quantile(x, probs = 0.975)),
-                                      apply(x_Midlands, 2, function(x) quantile(x, probs = 0.975)),
-                                      apply(epsilon_Midlands_28, 2, function(x) quantile(x, probs = 0.975)),
-                                      apply(epsilon_Midlands_14, 2, function(x) quantile(x, probs = 0.975))),
-                           lower2 = c(apply(epsilon_Midlands_21, 2, function(x) quantile(x, probs = 0.25)), 
-                                      apply(x_Midlands, 2, function(x) quantile(x, probs = 0.25)),
-                                      apply(epsilon_Midlands_28, 2, function(x) quantile(x, probs = 0.25)),
-                                      apply(epsilon_Midlands_14, 2, function(x) quantile(x, probs = 0.25))), 
-                           upper2 = c(apply(epsilon_Midlands_21, 2, function(x) quantile(x, probs = 0.75)),
-                                      apply(x_Midlands, 2, function(x) quantile(x, probs = 0.75)),
-                                      apply(epsilon_Midlands_28, 2, function(x) quantile(x, probs = 0.75)),
-                                      apply(epsilon_Midlands_14, 2, function(x) quantile(x, probs = 0.75))))
-data2Midlands = data.frame( t=as.Date(EastMidlands_data$Date)[1:n_days_Midlands][t2_Midlands], value= EastMidlands_data$sero[t2_Midlands], upper= EastMidlands_data$sero_upper[t2_Midlands], lower = EastMidlands_data$sero_lower[t2_Midlands])
+                           median = c(100*apply(epsilon_Midlands_21, 2, function(x) quantile(x, probs = 0.5)), 
+                                      100*apply(x_Midlands, 2, function(x) quantile(x, probs = 0.5)),
+                                      100*apply(epsilon_Midlands_28, 2, function(x) quantile(x, probs = 0.5)),
+                                      100*apply(epsilon_Midlands_14, 2, function(x) quantile(x, probs = 0.5))), 
+                           lower1 = c(100*apply(epsilon_Midlands_21, 2, function(x) quantile(x, probs = 0.5)), 
+                                      100*apply(x_Midlands, 2, function(x) quantile(x, probs = 0.025)),
+                                      100*apply(epsilon_Midlands_28, 2, function(x) quantile(x, probs = 0.025)),
+                                      100*apply(epsilon_Midlands_14, 2, function(x) quantile(x, probs = 0.025))), 
+                           upper1 = c(100*apply(epsilon_Midlands_21, 2, function(x) quantile(x, probs = 0.975)),
+                                      100*apply(x_Midlands, 2, function(x) quantile(x, probs = 0.975)),
+                                      100*apply(epsilon_Midlands_28, 2, function(x) quantile(x, probs = 0.975)),
+                                      100*apply(epsilon_Midlands_14, 2, function(x) quantile(x, probs = 0.975))),
+                           lower2 = c(100*apply(epsilon_Midlands_21, 2, function(x) quantile(x, probs = 0.25)), 
+                                      100*apply(x_Midlands, 2, function(x) quantile(x, probs = 0.25)),
+                                      100*apply(epsilon_Midlands_28, 2, function(x) quantile(x, probs = 0.25)),
+                                      100*apply(epsilon_Midlands_14, 2, function(x) quantile(x, probs = 0.25))), 
+                           upper2 = c(100*apply(epsilon_Midlands_21, 2, function(x) quantile(x, probs = 0.75)),
+                                      100*apply(x_Midlands, 2, function(x) quantile(x, probs = 0.75)),
+                                      100*apply(epsilon_Midlands_28, 2, function(x) quantile(x, probs = 0.75)),
+                                      100*apply(epsilon_Midlands_14, 2, function(x) quantile(x, probs = 0.75))))
+data2Midlands = data.frame( t=as.Date(EastMidlands_data$Date)[1:n_days_Midlands][t2_Midlands], value= 100*EastMidlands_data$sero[t2_Midlands], upper= 100*EastMidlands_data$sero_upper[t2_Midlands], lower = 100*EastMidlands_data$sero_lower[t2_Midlands])
 
 p1Midlands<-ggplot(data1Midlands, aes(x=t, y = median, group = output, colour = output)) +
+  scale_fill_manual(values=c(colors_Dark[1], colors_Dark[4], colors_Dark[3],colors_Dark[2]))+
   geom_line(size = lwd) +  ggtitle("Midlands")+
   geom_ribbon(aes(ymin=lower1, ymax=upper1, fill = output), alpha=0.2, colour = NA)+
-  geom_ribbon(aes(ymin=lower2, ymax=upper2, fill = output), alpha=0.5, colour = NA)+
-  scale_y_continuous(breaks = c(0,0.05,0.10,0.15,0.20,0.25,0.30), limit = c(0, ymax_exposure))+
+  # geom_ribbon(aes(ymin=lower2, ymax=upper2, fill = output), alpha=0.5, colour = NA)+
+  scale_y_continuous(breaks = c(0,5,10,15,20,25), limit = c(0, ymax_exposure))+
   scale_x_date(breaks = as.Date(c("2020-01-01","2020-03-01", "2020-05-01", "2020-07-01","2020-09-01",  "2020-11-01")), labels=c("Jan","Mar", "May", "Jul","Sep","Nov"), limit = as.Date(c("2020-01-01","2020-11-07")))+
   geom_pointrange(data=data2Midlands, aes(x=t,y=value,ymin=lower, ymax=upper), inherit.aes = FALSE, shape = 21, size=pt_size, colour = "black", fill = colors_Dark[2])
 styled1Midlands <- p1Midlands +
-  scale_fill_brewer(palette = "Dark2")+
+  # scale_fill_brewer(palette = "Dark2")+
   scale_colour_brewer(palette = "Dark2")+
   theme_minimal() +
   ylab(" ") +
@@ -557,7 +578,8 @@ styled1Midlands <- p1Midlands +
     legend.title = element_blank(),
     axis.title.y = element_blank(),
     axis.text.y = element_blank(),
-    axis.title.x = element_text(angle = 0, vjust = -0.005, hjust = 1,size=14),
+    axis.text.x = element_text(size=font_size),
+    axis.title.x = element_text(angle = 0, vjust = -0.005, hjust = 1,size=font_size),
     axis.ticks = element_line(colour = "grey50", size = 0.2),
     panel.grid.major = element_line(colour = "grey50", size = 0.2),
     panel.grid.minor = element_blank(),
@@ -582,42 +604,43 @@ epsilon_EastofEngland_28<-epsilon_EastofEngland[,(delta_epsilon_28+1):n_days_Eas
 epsilon_EastofEngland_14<-epsilon_EastofEngland[,(delta_epsilon_14+1):n_days_EastofEngland]
 
 
-data1EastofEngland = data.frame(output = c(rep("Exposure (Scenario 2)", (n_days_EastofEngland-delta_epsilon)), rep("Seroprevalence (Scenario 1, 2, 3)", n_days_EastofEngland), rep("Exposure (Scenario 3)",(n_days_EastofEngland-delta_epsilon_28)),rep("Exposure (Scenario 1)",(n_days_EastofEngland-delta_epsilon_14))), 
+data1EastofEngland = data.frame(output = c(rep("Exposure (Model 2)", (n_days_EastofEngland-delta_epsilon)), rep("Seroprevalence (Model 1, 2, 3)", n_days_EastofEngland), rep("Exposure (Model 3)",(n_days_EastofEngland-delta_epsilon_28)),rep("Exposure (Model 1)",(n_days_EastofEngland-delta_epsilon_14))), 
                                 t=c(as.Date(EastofEngland_data$Date)[1:(n_days_EastofEngland-delta_epsilon)],as.Date(EastofEngland_data$Date)[1:n_days_EastofEngland],as.Date(EastofEngland_data$Date)[1:(n_days_EastofEngland-delta_epsilon_28)],as.Date(EastofEngland_data$Date)[1:(n_days_EastofEngland-delta_epsilon_14)]), 
-                                median = c(apply(epsilon_EastofEngland_21, 2, function(x) quantile(x, probs = 0.5)), 
-                                           apply(x_EastofEngland, 2, function(x) quantile(x, probs = 0.5)),
-                                           apply(epsilon_EastofEngland_28, 2, function(x) quantile(x, probs = 0.5)),
-                                           apply(epsilon_EastofEngland_14, 2, function(x) quantile(x, probs = 0.5))), 
-                                lower1 = c(apply(epsilon_EastofEngland_21, 2, function(x) quantile(x, probs = 0.5)), 
-                                           apply(x_EastofEngland, 2, function(x) quantile(x, probs = 0.025)),
-                                           apply(epsilon_EastofEngland_28, 2, function(x) quantile(x, probs = 0.025)),
-                                           apply(epsilon_EastofEngland_14, 2, function(x) quantile(x, probs = 0.025))), 
-                                upper1 = c(apply(epsilon_EastofEngland_21, 2, function(x) quantile(x, probs = 0.975)),
-                                           apply(x_EastofEngland, 2, function(x) quantile(x, probs = 0.975)),
-                                           apply(epsilon_EastofEngland_28, 2, function(x) quantile(x, probs = 0.975)),
-                                           apply(epsilon_EastofEngland_14, 2, function(x) quantile(x, probs = 0.975))),
-                                lower2 = c(apply(epsilon_EastofEngland_21, 2, function(x) quantile(x, probs = 0.25)), 
-                                           apply(x_EastofEngland, 2, function(x) quantile(x, probs = 0.25)),
-                                           apply(epsilon_EastofEngland_28, 2, function(x) quantile(x, probs = 0.25)),
-                                           apply(epsilon_EastofEngland_14, 2, function(x) quantile(x, probs = 0.25))), 
-                                upper2 = c(apply(epsilon_EastofEngland_21, 2, function(x) quantile(x, probs = 0.75)),
-                                           apply(x_EastofEngland, 2, function(x) quantile(x, probs = 0.75)),
-                                           apply(epsilon_EastofEngland_28, 2, function(x) quantile(x, probs = 0.75)),
-                                           apply(epsilon_EastofEngland_14, 2, function(x) quantile(x, probs = 0.75))))
-data2EastofEngland = data.frame( t=as.Date(EastofEngland_data$Date)[1:n_days_EastofEngland][t2_EastofEngland], value= EastofEngland_data$sero[t2_EastofEngland], upper= EastofEngland_data$sero_upper[t2_EastofEngland], lower = EastofEngland_data$sero_lower[t2_EastofEngland])
+                                median = c(100*apply(epsilon_EastofEngland_21, 2, function(x) quantile(x, probs = 0.5)), 
+                                           100*apply(x_EastofEngland, 2, function(x) quantile(x, probs = 0.5)),
+                                           100*apply(epsilon_EastofEngland_28, 2, function(x) quantile(x, probs = 0.5)),
+                                           100*apply(epsilon_EastofEngland_14, 2, function(x) quantile(x, probs = 0.5))), 
+                                lower1 = c(100*apply(epsilon_EastofEngland_21, 2, function(x) quantile(x, probs = 0.5)), 
+                                           100*apply(x_EastofEngland, 2, function(x) quantile(x, probs = 0.025)),
+                                           100*apply(epsilon_EastofEngland_28, 2, function(x) quantile(x, probs = 0.025)),
+                                           100*apply(epsilon_EastofEngland_14, 2, function(x) quantile(x, probs = 0.025))), 
+                                upper1 = c(100*apply(epsilon_EastofEngland_21, 2, function(x) quantile(x, probs = 0.975)),
+                                           100*apply(x_EastofEngland, 2, function(x) quantile(x, probs = 0.975)),
+                                           100*apply(epsilon_EastofEngland_28, 2, function(x) quantile(x, probs = 0.975)),
+                                           100*apply(epsilon_EastofEngland_14, 2, function(x) quantile(x, probs = 0.975))),
+                                lower2 = c(100*apply(epsilon_EastofEngland_21, 2, function(x) quantile(x, probs = 0.25)), 
+                                           100*apply(x_EastofEngland, 2, function(x) quantile(x, probs = 0.25)),
+                                           100*apply(epsilon_EastofEngland_28, 2, function(x) quantile(x, probs = 0.25)),
+                                           100*apply(epsilon_EastofEngland_14, 2, function(x) quantile(x, probs = 0.25))), 
+                                upper2 = c(100*apply(epsilon_EastofEngland_21, 2, function(x) quantile(x, probs = 0.75)),
+                                           100*apply(x_EastofEngland, 2, function(x) quantile(x, probs = 0.75)),
+                                           100*apply(epsilon_EastofEngland_28, 2, function(x) quantile(x, probs = 0.75)),
+                                           100*apply(epsilon_EastofEngland_14, 2, function(x) quantile(x, probs = 0.75))))
+data2EastofEngland = data.frame( t=as.Date(EastofEngland_data$Date)[1:n_days_EastofEngland][t2_EastofEngland], value= 100*EastofEngland_data$sero[t2_EastofEngland], upper= 100*EastofEngland_data$sero_upper[t2_EastofEngland], lower = 100*EastofEngland_data$sero_lower[t2_EastofEngland])
 
 p1EastofEngland<-ggplot(data1EastofEngland, aes(x=t, y = median, group = output, colour = output)) +
+  scale_fill_manual(values=c(colors_Dark[1], colors_Dark[4], colors_Dark[3],colors_Dark[2]))+
   geom_line(size = lwd) +  ggtitle("East")+
   geom_ribbon(aes(ymin=lower1, ymax=upper1, fill = output), alpha=0.2, colour = NA)+
-  geom_ribbon(aes(ymin=lower2, ymax=upper2, fill = output), alpha=0.5, colour = NA)+
-  scale_y_continuous(breaks = c(0,0.05,0.1,0.15,0.2,0.25,0.3), limit = c(0, ymax_exposure),labels = scales::percent_format(accuracy = 1))+
+  # geom_ribbon(aes(ymin=lower2, ymax=upper2, fill = output), alpha=0.5, colour = NA)+
+  scale_y_continuous(breaks = c(0,5,10,15,20,25), limit = c(0, ymax_exposure))+
   scale_x_date(breaks = as.Date(c("2020-01-01","2020-03-01", "2020-05-01", "2020-07-01","2020-09-01",  "2020-11-01")), labels=c("Jan","Mar", "May", "Jul","Sep","Nov"), limit = as.Date(c("2020-01-01","2020-11-07")))+
   geom_pointrange(data=data2EastofEngland, aes(x=t,y=value,ymin=lower, ymax=upper), inherit.aes = FALSE, shape = 21, size=pt_size, colour = "black", fill = colors_Dark[2])
 styled1EastofEngland <- p1EastofEngland +
-  scale_fill_brewer(palette = "Dark2")+
+  # scale_fill_brewer(palette = "Dark2")+
   scale_colour_brewer(palette = "Dark2")+
   theme_minimal() +
-  ylab(" ") +
+  ylab("Percentage (%) ") +
   xlab(" 2020 ")+
   theme(
     text = element_text(size=font_size),
@@ -626,7 +649,10 @@ styled1EastofEngland <- p1EastofEngland +
     legend.justification = c(0, 1),
     legend.position = "None",
     legend.title = element_blank(),
-    axis.title.x = element_text(angle = 0, vjust = -0.005, hjust = 1,size=14),
+    axis.title.y = element_text(size=font_size),
+    axis.title.x = element_text(angle = 0, vjust = -0.005, hjust = 1,size=font_size),
+    axis.text.y = element_text(size=font_size),
+    axis.text.x = element_text(size=font_size),
     axis.ticks = element_line(colour = "grey50", size = 0.2),
     panel.grid.major = element_line(colour = "grey50", size = 0.2),
     panel.grid.minor = element_blank(),
@@ -639,6 +665,7 @@ folder_strings[length(folder_strings)] = "Results"
 folder = paste(folder_strings, sep = "", collapse = "/")
 
 tiff(file=paste(folder,"/ConstantIFR_fitting_deltap.tiff", sep = ""),
-     width=45, height=25, units="cm", res=300)
+     width=40, height=20, units="cm", res=300)
 grid.arrange(styled1London,styled1NorthEastYorkshireHumber,styled1NorthWest,styled1SouthWest,styled1SouthEast,styled1Midlands,styled1EastofEngland)
 dev.off()
+

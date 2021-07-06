@@ -1,9 +1,11 @@
+#This code is to run constant IFR model using 28 positivity days death as model input
+
 set.seed(100)
 options (mc.cores = parallel::detectCores ())
 
 library(rstan)
 
-## Load regional death and seroprevalence data ##
+## Load regional death (28 days positivity death) and seroprevalence data ##
 folder_strings = unlist(strsplit(getwd(), '/'))
 folder_strings[length(folder_strings)] = "Data"
 folder = paste(folder_strings, sep = "", collapse = "/")

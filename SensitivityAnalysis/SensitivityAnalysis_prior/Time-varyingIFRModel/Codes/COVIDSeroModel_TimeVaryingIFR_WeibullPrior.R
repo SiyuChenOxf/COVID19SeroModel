@@ -1,5 +1,7 @@
+#This code is to generate posterior estimations for time-varying IFR model using Weibull prior for beta
+
 set.seed(100)
-options (mc.cores = parallel::detectCores ())
+#options (mc.cores = parallel::detectCores ())
 
 library(rstan)
 

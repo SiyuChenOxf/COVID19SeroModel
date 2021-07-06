@@ -1,5 +1,6 @@
+#This code is to generate posterior estimations for time varying IFR model using 28 days positive death as model inputs
 set.seed(100)
-options (mc.cores = parallel::detectCores ())
+#options (mc.cores = parallel::detectCores ())
 
 library(rstan)
 
@@ -39,9 +40,8 @@ P0_EastofEngland<-pop$Pop[which(pop$Region=="EastofEngland")]
 P0_SouthEast<-pop$Pop[which(pop$Region=="SouthEast")] 
 P0_SouthWest<-pop$Pop[which(pop$Region=="SouthWest")]  
 
-
 #virus positivity rates in London
-positivity_London<-positivity$London/100
+positivity_London<-positivity$London/100 # original data are in percentage
 
 #virus positivity rates in NorthEast & Yorkshire and the Humber
 positivity_NorthEastYorshireHumber<-positivity$NorthEast*P0_NorthEast/P0_NorthEastYorkshireHumber+positivity$YorkshireandHumber*P0_YorkshireHumber/P0_NorthEastYorkshireHumber

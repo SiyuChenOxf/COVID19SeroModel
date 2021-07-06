@@ -20,17 +20,11 @@ Maver<-function(x,step) {                                      #This function is
 
 step<-7
 
-England_data<-read.csv("England_data.csv",header = TRUE)
-
-positivity_England_Pillar1<-read.csv("positivity_England_Pillar1_week39.csv",header = TRUE)
-positivity_England_Pillar2<-read.csv("positivity_England_Pillar2_week39.csv",header = TRUE)
-positivity_England_Pillar1_2<-read.csv("positivity_England_Pillar1_week44.csv",header = TRUE)
-positivity_England_Pillar2_2<-read.csv("positivity_England_Pillar2_week44.csv",header = TRUE)
-
+England_data<-read.csv("England_data.csv",header = TRUE)              #Load England death, case and hospitalisation data
+England_positivity<-read.csv("England_positivity.csv",header = TRUE)  #Lpad England PCR test positivity data
 
 #virus positivity rates in England
-positivity_England<-matrix(c(positivity_England_Pillar1$positivity[1:14],0.5*positivity_England_Pillar1$positivity[15:22]+0.5*positivity_England_Pillar2$positivity[15:22],0.25*positivity_England_Pillar1$positivity[23:35]+0.25*positivity_England_Pillar2$positivity[23:35]+0.25*positivity_England_Pillar1_2$positivity[1:13]+0.25*positivity_England_Pillar2_2$positivity[1:13],0.5*positivity_England_Pillar1_2$positivity[14:18]+0.5*positivity_England_Pillar2_2$positivity[14:18]),nrow = 1)
-positivity_England<-c(rep(0,26),as.vector(apply(positivity_England, 2,function(x) rep(x,7))))/100
+positivity_England<-England_positivity$England_positivity/100         #original data are in percentage
 
 ######PLOTTING START HERE#####
 CFR<-Maver(England_data$daily_death[(delta_p+1):length(England_data$daily_death)],step)/Maver(England_data$daily_case[1:(length(England_data$daily_case)-delta_p)],step)

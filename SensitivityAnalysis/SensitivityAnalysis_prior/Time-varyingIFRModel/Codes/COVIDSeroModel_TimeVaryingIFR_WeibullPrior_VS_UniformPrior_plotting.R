@@ -1,3 +1,5 @@
+#This code is to plot comparison of posterior estimations for time-varying IFR model using Weibull prior and Uniform prior for beta
+
 set.seed(100)
 
 library(rgeos)
@@ -14,7 +16,7 @@ library(egg)
 library(RColorBrewer)
 library(gridExtra)
 
-## common values
+## common values for plotting
 ymax_kft <- 0.012
 ymax_exposure <- 0.30
 colors_Dark<-brewer.pal(7,"Dark2")
@@ -29,10 +31,10 @@ folder_strings = unlist(strsplit(getwd(), '/'))
 folder_strings[length(folder_strings)] = "Data"
 folder = paste(folder_strings, sep = "", collapse = "/")
 
-SeroModelTimeVaryingIFR_Uniform <- readRDS(paste(folder,"/SeroModelTimeVaryingIFR_delta_p_14.rds", sep = ""))
-SeroModelTimeVaryingIFR_Weibull <- readRDS(paste(folder,"/TimevaryingSeroModelTimeVaryingIFR_Weibull.rds", sep = ""))
+SeroModelTimeVaryingIFR_Uniform <- readRDS(paste(folder,"/SeroModelTimeVaryingIFR_delta_p_14.rds", sep = ""))          #Load posterior estimations for time-varying IFR model using Uniform prior for beta
+SeroModelTimeVaryingIFR_Weibull <- readRDS(paste(folder,"/TimevaryingSeroModelTimeVaryingIFR_Weibull.rds", sep = ""))  #Load posterior estimations for time-varying IFR model using Weibull prior for beta
 
-
+#Posterior estimations for time-varying IFR model using Uniform prior for beta
 beta_Uniform <- rstan::extract(SeroModelTimeVaryingIFR_Uniform)$beta
 eta_NorthEastYorkshireHumber_Uniform<- rstan::extract(SeroModelTimeVaryingIFR_Uniform)$eta_NorthEastYorkshireHumber
 gamma_NorthEastYorkshireHumber_Uniform<- rstan::extract(SeroModelTimeVaryingIFR_Uniform)$gamma_NorthEastYorkshireHumber
@@ -49,6 +51,7 @@ gamma_Midlands_Uniform <- rstan::extract(SeroModelTimeVaryingIFR_Uniform)$gamma_
 eta_EastofEngland_Uniform <- rstan::extract(SeroModelTimeVaryingIFR_Uniform)$eta_EastofEngland
 gamma_EastofEngland_Uniform <- rstan::extract(SeroModelTimeVaryingIFR_Uniform)$gamma_EastofEngland
 
+#Posterior estimations for time-varying IFR model using Weibull prior for beta
 beta_Weibull <- rstan::extract(SeroModelTimeVaryingIFR_Weibull)$beta
 eta_NorthEastYorkshireHumber_Weibull<- rstan::extract(SeroModelTimeVaryingIFR_Weibull)$eta_NorthEastYorkshireHumber
 gamma_NorthEastYorkshireHumber_Weibull<- rstan::extract(SeroModelTimeVaryingIFR_Weibull)$gamma_NorthEastYorkshireHumber
@@ -65,7 +68,7 @@ gamma_Midlands_Weibull <- rstan::extract(SeroModelTimeVaryingIFR_Weibull)$gamma_
 eta_EastofEngland_Weibull <- rstan::extract(SeroModelTimeVaryingIFR_Weibull)$eta_EastofEngland
 gamma_EastofEngland_Weibull <- rstan::extract(SeroModelTimeVaryingIFR_Weibull)$gamma_EastofEngland
 
-data<-data.frame(class=factor(rep(c("Scenario 7","Scenario 13"),each=length(beta_Uniform))),
+data<-data.frame(class=factor(rep(c("Model 7","Model 13"),each=length(beta_Uniform))),
                  para_beta=c(beta_Uniform,beta_Weibull),
                  para_London=c(gamma_London_Uniform,gamma_London_Weibull),para_London2=c(eta_London_Uniform,eta_London_Weibull),
                  para_NorthEast=c(gamma_NorthEastYorkshireHumber_Uniform,gamma_NorthEastYorkshireHumber_Weibull),para_NorthEast2=c(eta_NorthEastYorkshireHumber_Uniform,eta_NorthEastYorkshireHumber_Weibull),
@@ -82,9 +85,11 @@ them<-theme(
   legend.position = "none",
   # legend.title = element_blank(),
   axis.ticks = element_line(colour = "grey50", size = 0.2),
+  axis.text.y=element_blank(),
+  axis.ticks.y=element_blank(),
   # plot.margin = margin(t=0, r=right_margin, b=0, l=0, "cm"),
-  panel.grid.major = element_line(colour = "grey50"),
-  panel.grid.minor = element_blank()
+  # panel.grid.major = element_line(colour = "grey50"),
+  # panel.grid.minor = element_blank()
 )
 p1<-ggplot(data, aes(x=para_beta, fill=class))+geom_density(alpha=.3)+xlab(" ")+ylab(expression(beta))+theme_minimal()+theme(
   text = element_text(size=font_size),
@@ -93,9 +98,11 @@ p1<-ggplot(data, aes(x=para_beta, fill=class))+geom_density(alpha=.3)+xlab(" ")+
   legend.position = c(1,1),
   legend.title = element_blank(),
   axis.ticks = element_line(colour = "grey50", size = 0.2),
+  axis.text.y=element_blank(),
+  axis.ticks.y=element_blank(),
   # plot.margin = margin(t=0, r=right_margin, b=0, l=0, "cm"),
-  panel.grid.major = element_line(colour = "grey50"),
-  panel.grid.minor = element_blank()
+  # panel.grid.major = element_line(colour = "grey50"),
+  # panel.grid.minor = element_blank()
 )
 
 p2<-ggplot(data, aes(x=para_London, fill=class)) + geom_density(alpha=.3)+xlab(" ")+ylab(expression(gamma[London]))+theme_minimal()+them
@@ -120,11 +127,6 @@ folder = paste(folder_strings, sep = "", collapse = "/")
 
 tiff(file=paste(folder,"/comparison1_timevarying1.tiff", sep = ""),
      width=30, height=20, units="cm", res=300)
-ggarrange(p2,p3, p4,p5, p6,p7, p8, p1)
-dev.off()
-
-tiff(file=paste(folder,"/comparison1_timevarying2.tiff", sep = ""),
-     width=30, height=20, units="cm", res=300)
-ggarrange(p9,p10, p11,p12, p13,p14, p15)
+ggarrange(p2,p3, p4,p5, p6,p7, p8, p1,p9,p10, p11,p12, p13,p14, p15)
 dev.off()
 
